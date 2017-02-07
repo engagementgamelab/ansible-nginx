@@ -1,8 +1,8 @@
 # {{ ansible_managed }}
 
-user {{ nginx_user }};
-worker_processes {{ nginx_worker_processes }};
-worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
+#user {{ nginx_user }};
+#worker_processes {{ nginx_worker_processes }};
+#worker_rlimit_nofile {{ nginx_worker_rlimit_nofile }};
 
 events {
   worker_connections {{ nginx_events_worker_connections }};
@@ -11,6 +11,9 @@ events {
 http {
   include /etc/nginx/mime.types;
   default_type application/octet-stream;
+
+  access_log /var/log/nginx/access.log;
+  error_log /var/log/nginx/error.log;
 
   server_tokens {{ nginx_http_server_tokens }};
   {% if nginx_http_add_headers is iterable %}

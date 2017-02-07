@@ -1,0 +1,43 @@
+# - name: install setfacl support
+#   hosts: emerson
+#   become: yes
+#   apt: pkg=acl
+
+- name: Configure app server
+  hosts: emerson
+  strategy: debug
+  any_errors_fatal: yes
+  remote_user: admin
+  become: yes
+  become_method: sudo
+  become_user: root
+      
+  pre_tasks:
+    - name: Check for confirmation
+      fail:
+        msg: All tasks cancelled!
+      when: confirmation != 'YES'
+
+    - name: Set vars
+      set_fact:
+        app:
+          domains: "{{ domains_list }}"
+          server_port: "{{ port }}" 
+
+  vars_prompt:
+    - name: "domains_list"
+      prompt: "Enter app urls. (Must be in format ['qa.domain.com', 'www.qa.domain.com'])"
+      private: no
+
+    - name: "port"
+      prompt: "Enter port app runs on"
+      private: no
+      default: "3000"
+
+    - name: "confirmation"
+      prompt: "Are you sure you want to setup this server config (YES/NO)?"
+      default: "NO"
+      private: no
+
+  roles:
+    - nginx
