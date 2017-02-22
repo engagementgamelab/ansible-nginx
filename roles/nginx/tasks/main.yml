@@ -80,7 +80,7 @@
   when: config_file.stat.exists == True
 
 - name: Generate self signed SSL certificates via letsencrypt (this can take a while)
-  shell: "/opt/letsencrypt/letsencrypt-auto certonly -n --nginx -m {{ letsencrypt_email }} --agree-tos -d {{ app.domains[0] }}"
+  shell: "/opt/letsencrypt/letsencrypt-auto certonly -n --nginx -m {{ letsencrypt_email }} --agree-tos -d {{ app.domains[0] }} -d {{ app.domains[1] }}"
   args:
     creates: '/etc/letsencrypt/live/{{ app.domains[0] }}'
   async: 60

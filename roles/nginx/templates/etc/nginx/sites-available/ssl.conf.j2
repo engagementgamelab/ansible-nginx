@@ -28,7 +28,7 @@ server {
 server {
 
   listen {{ item.listen_https }} ssl{{ ' default deferred' if item.default_server else '' }};
-  server_name {{ item.domains[0] }};
+  server_name {{ item.domains[0] }} www.{{ item.domains[0] }};
 
   ssl_certificate /etc/letsencrypt/live/{{ item.domains[0] }}/fullchain.pem;
   ssl_certificate_key /etc/letsencrypt/live/{{ item.domains[0] }}/privkey.pem;
@@ -50,7 +50,7 @@ server {
 
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
-      proxy_set_header Host {{ app_subdomain }}.localhost;
+      proxy_set_header Host {{ item.app_subdomain }}.localhost;
 
       proxy_cache_bypass $http_upgrade;
 
