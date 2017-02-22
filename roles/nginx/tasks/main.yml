@@ -51,9 +51,36 @@
 #   notify:
 #     - Test nginx and reload
 
-- debug: var=ssl_domains
+- name: Configure site virtual host config for SSL issuer use
+  template:
+    src: 'etc/nginx/sites-available/default.conf.j2'
+    dest: '/etc/nginx/sites-available/{{ app.domains[0] }}'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+  register: nginx_register_vhost_config
+  notify:
+    - Test nginx and reload
+
+- name: Symlink sites-available to sites-enabled
+  file:
+    src: '/etc/nginx/sites-available/{{ app.domains[0] }}'
+    dest: '/etc/nginx/sites-enabled/{{ app.domains[0] }}'
+    state: 'link'
+  notify:
+    - Test nginx and restart
+
+- stat: path=/etc/nginx/sites-enabled/{{ app.domains[0] }}
+  register: config_file
+
+- name: Forcefully restart nginx
+  service:
+    name: 'nginx'
+    state: 'restarted'
+  when: config_file.stat.exists == True
+
 - name: Generate self signed SSL certificates via letsencrypt (this can take a while)
-  shell: "/opt/letsencrypt/letsencrypt-auto certonly -n --webroot -w /tmp/letsencrypt-auto -m {{ letsencrypt_email }} --agree-tos -d {{ app.domains[0] }} -d {{ app.domains[1] }}"
+  shell: "/opt/letsencrypt/letsencrypt-auto certonly -n --nginx -m {{ letsencrypt_email }} --agree-tos -d {{ app.domains[0] }}"
   args:
     creates: '/etc/letsencrypt/live/{{ app.domains[0] }}'
   async: 60
@@ -68,40 +95,19 @@
   notify:
     - Test nginx and restart
 
-# - name: Create basic auth entries
-#   htpasswd:
-#     path: '/etc/nginx/.htpasswd'
-#     name: '{{ item.user }}'
-#     password: '{{ item.password }}'
-#     crypt_scheme: 'sha512_crypt'
-#     group: 'root'
-#     owner: 'root'
-#     mode: '0644'
-#   with_items: '{{ nginx_basic_auth }}'
-
-- name: Configure sites-enabled (vhosts)
+- name: Configure secure site virtual host config now that SSL is issued
   template:
-    src: 'etc/nginx/sites-available/default.conf.j2'
+    src: 'etc/nginx/sites-available/ssl.conf.j2'
     dest: '/etc/nginx/sites-available/{{ app.domains[0] }}'
     group: 'root'
     owner: 'root'
     mode: '0644'
-  # debug: var=item
-  # with_dict: '{{ app }}'
-  register: nginx_register_vhost_config
+  register: nginx_register_vhost_ssl_config
   notify:
     - Test nginx and reload
 
-- name: Symlink sites-available to sites-enabled
-  file:
-    src: '/etc/nginx/sites-available/{{ app.domains[0] }}'
-    dest: '/etc/nginx/sites-enabled/{{ app.domains[0] }}'
-    state: 'link'
-  notify:
-    - Test nginx and restart
-
-- name: Forcefully restart nginx
+- name: Forcefully restart nginx once more
   service:
     name: 'nginx'
     state: 'restarted'
-  when: (nginx_register_vhost_config | changed)
+  when: (nginx_register_vhost_ssl_config | changed)
