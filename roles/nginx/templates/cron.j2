@@ -1,5 +1,5 @@
 # SSL auto-renew check (every Monday 2:30am)
 29 2 * * 1 printf "$(date)\n-----\n\n" >> /var/log/le-renew.log
-30 2 * * 1 /opt/letsencrypt/letsencrypt-auto renew --webroot --webroot-path=/tmp/letsencrypt-auto >> /var/log/le-renew.log
+30 2 * * 1 /opt/letsencrypt/letsencrypt-auto renew --nginx >> /var/log/le-renew.log
 35 2 * * 1 /etc/init.d/nginx reload
 
