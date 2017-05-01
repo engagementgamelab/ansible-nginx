@@ -111,3 +111,24 @@
     name: 'nginx'
     state: 'restarted'
   when: (nginx_register_vhost_ssl_config | changed)
+
+- name: Create bash script for running SSL auto-renew
+  template:
+    src: 'renew.sh.j2'
+    dest: '/root/renew.sh'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+  register: ssl_renew_bash_created
+
+- cron:
+    name: "Run SSL renew job and output results to log"
+    minute: "29"
+    hour: "2"
+    job: "printf '$(date)\n-----\n\n' >> /var/log/le-renew.log; sh /root/renew.sh;"
+
+- cron:
+    name: "Restart nginx"
+    minute: "35"
+    hour: "2"
+    job: "/etc/init.d/nginx reload"

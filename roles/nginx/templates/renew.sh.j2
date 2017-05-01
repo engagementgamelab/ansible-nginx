@@ -1,0 +1,4 @@
+#!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+/root/.local/share/letsencrypt/bin/letsencrypt renew --nginx >> /var/log/le-renew.log 2>&1
