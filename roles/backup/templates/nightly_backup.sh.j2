@@ -1,0 +1,37 @@
+# {{ ansible_managed }}
+# Backup all mongo DBs and upload to Azure container
+## Developed by Engagement Lab at Emerson College, 2017-2018
+## Last modified by Johnny Richardson, 01-05-18
+
+{% set item = app %}
+
+#!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+export AZURE_STORAGE_ACCOUNT={{ item.azure_storage_account }}
+export AZURE_STORAGE_ACCESS_KEY={{ item.azure_storage_key }}
+
+DIR=`date +%m%d%y`
+ROOT=/opt/nightly_backup
+DEST=$ROOT/$DIR
+HOST=`uname -n`
+
+# Delete oldest backup tar if >30 days & >30 tars
+NUM=$(ls -lR $ROOT/*.tar.gz | wc -l)
+if [ "$NUM" -ge "30" ]
+then
+	find $ROOT/*.tar.gz -mtime +29 -type f -delete
+fi
+
+mkdir -p $ROOT
+mkdir -p $DEST
+
+mongodump -h 127.0.0.1 -o $DEST
+env GZIP=-9 tar -zcvf $ROOT/$DIR.tar.gz $DEST
+
+# Upload nightly backup to Azure 
+az login --service-principal -u {{item.azure_name}} -p "{{item.azure_pw}}" --tenant {{item.azure_tenant}}
+az storage blob upload --container-name {{item.azure_storage_container}} --file $ROOT/$DIR.tar.gz --name $HOST/$DIR.tar.gz
+
+# Remove today's backup dir
+rm -r $DEST

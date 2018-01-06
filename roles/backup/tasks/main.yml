@@ -1,0 +1,41 @@
+# - name: Install Azure CLI
+#   shell: "curl -L https://aka.ms/InstallAzureCli | bash"
+#   expect:
+#     command: "curl -L https://aka.ms/InstallAzureCli | bash"
+#     responses:
+#       "===> In what directory would you like to place the install? (leave blank to use '/root/lib/azure-cli')": ""
+#       "===> In what directory would you like to place the 'az' executable? (leave blank to use '/root/bin'):": ""
+#       "===> Modify profile to update your $PATH and enable shell/tab completion now? (Y/n)": "Y"
+#       "===> Enter a path to an rc file to update (leave blank to use '/root/.bashrc')": ""
+#   notify:
+#     - Azure installed
+
+- name: Install the Azure CLI
+  script: ../scripts/install-azure-cli.sh
+  # working_directory: scripts
+
+- name: Login to Azure 
+  shell: "az login --service-principal -u {{app.azure_name}} -p \"{{app.azure_pw}}\" --tenant {{app.azure_tenant}}"
+
+- name: Configure and create backup script
+  template:
+    src: 'nightly_backup.sh.j2'
+    dest: '/root/nightly_backup.sh'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+
+- name: Create file for cron log
+  copy:
+    content: ""
+    dest: /var/log/nightly-backup.log
+    force: no
+    group: root
+    owner: root
+    mode: 0555
+
+- cron:
+    name: "Run nightly database backup and upload"
+    minute: "00"
+    hour: "0"
+    job: "sh /root/nightly_backup.sh >> /var/log/nightly-backup.log"

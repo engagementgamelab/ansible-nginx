@@ -1,0 +1,50 @@
+- name: Setup nightly backups
+  hosts: '{{target}}'
+  any_errors_fatal: yes
+  remote_user: admin
+  become: yes
+  become_method: sudo
+  become_user: root
+      
+  pre_tasks:
+    - name: Check for confirmation
+      fail:
+        msg: All tasks cancelled!
+      when: confirmation != 'YES'
+
+    - name: Set vars
+      set_fact:
+        app:
+          azure_storage_account: "{{ azure_storage_account }}"
+          azure_storage_container: "{{ azure_storage_container }}"
+          azure_storage_key: "{{ azure_storage_key }}"
+          azure_name: "{{ azure_name }}"
+          azure_pw: "{{ azure_pw }}"
+          azure_tenant: "{{ azure_tenant }}"
+
+  vars_prompt:
+    - name: "azure_name"
+      prompt: "Enter azure AD app name (http://xxx...)"
+      private: no
+    - name: "azure_pw"
+      prompt: "Enter azure AD app password"
+      private: yes
+    - name: "azure_tenant"
+      prompt: "Enter azure AD app tenant key"
+      private: yes
+    - name: "azure_storage_account"
+      prompt: "Enter azure storage account name (find in Azure portal)"
+      private: no
+    - name: "azure_storage_container"
+      prompt: "Enter azure storage account container name (find in Azure portal)"
+      private: no
+    - name: "azure_storage_key"
+      prompt: "Enter azure storage key"
+      private: no
+    - name: "confirmation"
+      prompt: "Are you sure you want to setup this nightly backup config (YES/NO)?"
+      default: "NO"
+      private: no
+
+  roles:
+    - backup

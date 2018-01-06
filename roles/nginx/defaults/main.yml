@@ -75,6 +75,6 @@ nginx_letsencrypt_root: '/usr/share/nginx/challenges'
 
 # nginx_sites: {}
 
-letsencrypt_email: 'johnny@elab.emerson.edu'
+letsencrypt_email: 'john_richardson@emerson.edu'
 
 

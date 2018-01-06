@@ -121,14 +121,14 @@
     mode: '0644'
   register: ssl_renew_bash_created
 
-- cron:
-    name: "Run SSL renew job and output results to log"
-    minute: "29"
-    hour: "2"
-    job: "printf '$(date)\n-----\n\n' >> /var/log/le-renew.log; sh /root/renew.sh;"
+# - cron:
+#     name: "Run SSL renew job and output results to log"
+#     minute: "29"
+#     hour: "2"
+#     job: "printf '$(date)\n-----\n\n' >> /var/log/le-renew.log; sh /root/renew.sh;"
 
-- cron:
-    name: "Restart nginx"
-    minute: "35"
-    hour: "2"
-    job: "/etc/init.d/nginx reload"
+# - cron:
+#     name: "Restart nginx"
+#     minute: "35"
+#     hour: "2"
+#     job: "/etc/init.d/nginx reload"
