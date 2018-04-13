@@ -61,6 +61,19 @@
   register: nginx_register_vhost_config
   notify:
     - Test nginx and reload
+  when: not is_angular
+
+- name: Configure site virtual host config for SSL issuer use (angular client app and API)
+  template:
+    src: 'etc/nginx/sites-available/angular.conf.j2'
+    dest: '/etc/nginx/sites-available/{{ app.domains[0] }}'
+    group: 'root'
+    owner: 'root'
+    mode: '0644'
+  register: nginx_register_vhost_config
+  notify:
+    - Test nginx and reload
+  when: is_angular
 
 - name: Symlink sites-available to sites-enabled
   file:

@@ -24,8 +24,16 @@
           domains: "{{ domains_list }}"
           server_port: "{{ port }}" 
           app_subdomain: "{{ subdomain }}"
+          is_angular: "{{ is_angular }}"
+          api_port: "{{ api_port }}"
+          root_dir: "{{ root_dir }}"
 
   vars_prompt:
+    - name: "is_angular"
+      prompt: "Does app run on AngularJS?"
+      default: no
+      private: no
+
     - name: "domains_list"
       prompt: "Enter app urls. (Must be in format ['qa.domain.com', 'www.qa.domain.com'] or ['domain.com', 'www.domain.com'])"
       private: no
@@ -39,6 +47,15 @@
       prompt: "Enter port app runs on"
       private: no
       default: "3000"
+
+    - name: "api_port"
+      prompt: "Enter port api endpoint runs on (if applicable)"
+      private: no
+      default: "3000"
+
+    - name: "root_dir"
+      prompt: "Enter root directory under /srv/ for app (if applicable)"
+      private: no
 
     - name: "confirmation"
       prompt: "Are you sure you want to setup this server config (YES/NO)?"
