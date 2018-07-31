@@ -46,6 +46,12 @@ server {
   ssl_stapling_verify {{ item.ssl.ssl_stapling_verify }};
 
   root /srv/{{item.root_dir}}/source/client/dist;
+  
+  # Downtime page
+  error_page 500 501 502 503 /50x.html;
+  location = /50x.html {
+    root /srv/{{item.root_dir}}/source/client;
+  }
 
   location / {
 
