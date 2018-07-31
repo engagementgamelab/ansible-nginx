@@ -1,0 +1,15 @@
+#!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+DIR=`date +%m%d%y`
+ROOT=/opt/nightly_backup
+DEST=$ROOT/$DIR
+
+mkdir -p $ROOT
+mkdir -p $DEST
+
+mongodump -h 127.0.0.1 -o $DEST
+
+tar -zcvf $ROOT/$DIR.tar.gz $DEST
+
+./backup_upload.sh
