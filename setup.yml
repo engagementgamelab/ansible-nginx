@@ -41,7 +41,7 @@
     - name: "subdomain"
       prompt: "Enter subdomain for localhost (e.g. qa.localhost)"
       private: no
-      default: "3000"
+      default: "sub"
 
     - name: "port"
       prompt: "Enter port app runs on"
