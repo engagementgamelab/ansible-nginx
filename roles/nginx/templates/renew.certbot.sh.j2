@@ -1,0 +1,5 @@
+#!/bin/sh
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+
+{# /usr/bin/certbot renew >> /var/log/le-renew.log 2>&1 #}
+/usr/bin/certbot renew --nginx -n >> /var/log/le-renew.log 2>&1
