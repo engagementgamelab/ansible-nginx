@@ -41,4 +41,22 @@ http {
 
   include /etc/nginx/conf.d/*.conf;
   include /etc/nginx/sites-enabled/*;
+
+  # Legacy browser detect
+  map $http_user_agent $outdated {
+    default                                 0;
+    "~MSIE [0-9]\."                        1;
+    "~MSIE 10*"                        1;
+    "~rv:11*"                        1;
+    "~Mozilla.*Firefox/[1-9]\."             1;
+    "~Mozilla.*Firefox/[0-4][0-9]\."        1;
+    "~Mozilla.*Firefox/5[0-2]\."            1;
+    "~Opera.*Version/[0-9]\."               1;
+    "~Opera.*Version/[0-4][0-9]\."          1;
+    "~Opera.*Version/5[0-5]\."              1;
+    "~AppleWebKit.*Version/[0-9]\..*Safari" 1;
+    "~Chrome/[0-9]\."                       1;
+    "~Chrome/[0-4][0-9]\."                  1;
+    # "~Chrome/5[0-6]\."                      1;
+  }
 }

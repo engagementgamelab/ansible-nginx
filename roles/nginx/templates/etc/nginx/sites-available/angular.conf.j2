@@ -4,6 +4,9 @@
 
 server {
 
+  # For legacy agent detect
+  set $legacy_browser 0;
+
   listen {{ item.listen_http }}{{ ' default deferred' if item.default_server else '' }};
   server_name {{ item.domains | join(' ') }};
 
@@ -53,6 +56,26 @@ server {
     root /srv/{{item.root_dir}}/source/client;
   }
 
+  # Page for legacy agents
+  location /unsupported {
+    root /srv/engagement-lab-website-2.0/source/client;
+
+    try_files $uri $uri.html $uri/unsupported.html /unsupported.html;
+  }
+
+  # Handle legacy/unsupported agent
+  if ($outdated = 1) {
+     set $legacy_browser 1;
+  }
+
+  if ($uri = '/unsupported') {
+     set $legacy_browser 0;
+  }
+
+  if ($legacy_browser = 1) {
+      rewrite ^ http://$server_name/unsupported;
+  }
+  
   location / {
 
       proxy_pass http://127.0.0.1:{{ item.server_port }};
