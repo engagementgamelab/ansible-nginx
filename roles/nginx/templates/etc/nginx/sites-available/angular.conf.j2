@@ -27,7 +27,7 @@ server {
 
 }
 
-# Secure server is setup after letsencrypt-auto issues cert
+# Secure server is setup after certbot issues cert
 # Secure server
 server {
 
@@ -48,17 +48,12 @@ server {
   ssl_stapling {{ item.ssl.ssl_stapling }};
   ssl_stapling_verify {{ item.ssl.ssl_stapling_verify }};
 
-  root /srv/{{item.root_dir}}/source/client/dist;
-  
-  # Downtime page
-  error_page 500 501 502 503 /50x.html;
-  location = /50x.html {
-    root /srv/{{item.root_dir}}/source/client;
-  }
+  error_page 404 @error;
+  error_page 500 502 503 504 @500;
 
   # Page for legacy agents
   location /unsupported {
-    root /srv/engagement-lab-website-2.0/source/client;
+    root /srv/{{item.root_dir}}/source/client/static;
 
     try_files $uri $uri.html $uri/unsupported.html /unsupported.html;
   }
@@ -78,6 +73,11 @@ server {
   
   location / {
 
+      # Send user to error page via 404 block if dist/ dir missing (site is deploying)
+      if (!-d /srv/{{item.root_dir}}/source/client/dist) {
+        return 404;
+      }
+
       proxy_pass http://127.0.0.1:{{ item.server_port }};
       proxy_http_version 1.1;
 
@@ -88,10 +88,13 @@ server {
       proxy_cache_bypass $http_upgrade;
       proxy_intercept_errors on;
 
-      try_files $uri /index.html;
+      root /srv/{{item.root_dir}}/source/client/dist;
+
+      try_files $uri $uri.html $uri/index.html /index.html;
 
    }
 
+  # CMS and API blocks
   location ^~ /keystone/ {
 
       proxy_pass http://127.0.0.1:{{ item.api_port }}/keystone/;
@@ -99,11 +102,38 @@ server {
 
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
-      proxy_set_header Host {{ item.app_subdomain }}.localhost;
+      proxy_set_header Host localhost;
 
       proxy_cache_bypass $http_upgrade;
 
       client_max_body_size 500M;
+  }
+
+  # Auto0 callback
+  location ^~ /callback/ {
+
+      proxy_pass http://127.0.0.1:{{ item.api_port }}/callback/;
+      proxy_http_version 1.1;
+
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host localhost;
+
+      proxy_cache_bypass $http_upgrade;
+
+  }
+
+  location ^~ /cms/ {
+
+      proxy_pass http://127.0.0.1:{{ item.api_port }}/cms/;
+      proxy_http_version 1.1;
+
+      proxy_set_header Upgrade $http_upgrade;
+      proxy_set_header Connection 'upgrade';
+      proxy_set_header Host localhost;
+
+      proxy_cache_bypass $http_upgrade;
+
   }
 
   location ^~ /api/ {
@@ -113,10 +143,24 @@ server {
 
       proxy_set_header Upgrade $http_upgrade;
       proxy_set_header Connection 'upgrade';
-      proxy_set_header Host {{ item.app_subdomain }}.localhost;
+      proxy_set_header Host localhost;
 
       proxy_cache_bypass $http_upgrade;
 
+  }
+
+  location @500 {
+      root /srv/{{item.root_dir}}/source/client/static;
+      index 50x.html;
+      break;
+  }
+
+  location @error {
+      root /srv/{{item.root_dir}}/source/client/static;
+
+      # this page is either 404 or 'downtime' message, toggled via toggledowntime.sh
+      try_files /error.html =404;
+      break;
   }
 
 }
